@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "빠른 회원가입 테스트 (Google)",
+    "description": "Google 로그인 후 전화번호 인증 및 회원가입 완료",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Step 1: SMS 인증 코드 발송",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"010-1234-5678\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3002/auth/send-verification",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3002",
+          "path": ["auth", "send-verification"]
+        },
+        "description": "전화번호로 SMS 인증 코드 발송. 서버 콘솔에서 코드 확인!"
+      },
+      "response": []
+    },
+    {
+      "name": "Step 2: 전화번호 인증",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"010-1234-5678\",\n  \"verificationCode\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3002/auth/verify-phone",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3002",
+          "path": ["auth", "verify-phone"]
+        },
+        "description": "서버 콘솔의 실제 인증 코드를 입력하세요!"
+      },
+      "response": []
+    },
+    {
+      "name": "Step 3: 회원가입 완료 (옥용주님)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"010-1234-5678\",\n  \"verificationCode\": \"123456\",\n  \"socialProfile\": {\n    \"provider\": \"google\",\n    \"providerId\": \"115618534042560606286\",\n    \"email\": \"ok4192ok@gmail.com\",\n    \"name\": \"옥용주\",\n    \"profileImage\": \"https://lh3.googleusercontent.com/a/ACg8ocKreoqG5Mk4hg9WeSBvUPX8uGEiJ4ZBdCPErAslVlzxCQT--JLh=s96-c\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3002/auth/complete-social-login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3002",
+          "path": ["auth", "complete-social-login"]
+        },
+        "description": "Google 소셜 프로필로 회원가입 완료!"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.data && response.data.tokens) {",
+              "        pm.environment.set('accessToken', response.data.tokens.accessToken);",
+              "        pm.environment.set('refreshToken', response.data.tokens.refreshToken);",
+              "        pm.environment.set('userId', response.data.user.id);",
+              "        console.log('✅ 회원가입 완료!');",
+              "        console.log('User ID:', response.data.user.id);",
+              "        console.log('전화번호:', response.data.user.phone);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Step 4: 내 정보 조회",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3002/auth/me",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3002",
+          "path": ["auth", "me"]
+        },
+        "description": "회원가입 완료 후 내 정보 조회"
+      },
+      "response": []
+    }
+  ]
+}

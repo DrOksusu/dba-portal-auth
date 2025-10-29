@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소셜 로그인 테스트 - DBA Portal Auth</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .status h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .status p {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .login-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            gap: 12px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-google {
+            background: #fff;
+            color: #444;
+            border: 2px solid #ddd;
+        }
+
+        .btn-google:hover {
+            background: #f8f8f8;
+            border-color: #ccc;
+        }
+
+        .btn-kakao {
+            background: #FEE500;
+            color: #000;
+            border: 2px solid #FEE500;
+        }
+
+        .btn-kakao:hover {
+            background: #fdd800;
+        }
+
+        .btn-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-section {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-section h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .info-item::before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .user-info {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .user-info.show {
+            display: block;
+        }
+
+        .user-info h3 {
+            color: #2e7d32;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .user-info p {
+            color: #333;
+            font-size: 14px;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+
+        .user-info .label {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        .logout-btn {
+            background: #f44336;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .endpoint {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #856404;
+            word-break: break-all;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 소셜 로그인 테스트</h1>
+        <p class="subtitle">DBA Portal Auth Server</p>
+
+        <div class="status">
+            <h3>📡 서버 상태</h3>
+            <p id="server-status">확인 중...</p>
+        </div>
+
+        <div class="login-buttons">
+            <a href="http://localhost:3002/auth/google" class="btn btn-google">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Google로 로그인
+            </a>
+
+            <a href="http://localhost:3002/auth/kakao" class="btn btn-kakao">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path fill="#000000" d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3zm5.907 8.06l1.47-1.424a.472.472 0 0 0-.656-.678l-1.928 1.866V9.282a.472.472 0 0 0-.944 0v2.557a.471.471 0 0 0 0 .222V13.5a.472.472 0 0 0 .944 0v-1.363l.427-.413 1.428 2.033a.472.472 0 1 0 .773-.543l-1.514-2.155zm-2.958 1.924h-1.46V9.297a.472.472 0 0 0-.943 0v4.159c0 .26.21.472.471.472h1.932a.472.472 0 1 0 0-.944zm-5.857-1.092l.696-1.707.638 1.707H9.092zm2.523.488l.002-.016a.469.469 0 0 0-.127-.32l-1.046-2.8a.69.69 0 0 0-.627-.474.696.696 0 0 0-.653.447l-1.661 4.075a.472.472 0 0 0 .874.357l.33-.813h2.07l.299.8a.472.472 0 1 0 .884-.33l-.345-.926zM8.293 9.302a.472.472 0 0 0-.471-.472H4.577a.472.472 0 1 0 0 .944h1.16v3.736a.472.472 0 0 0 .944 0V9.774h1.14c.261 0 .472-.212.472-.472z"/>
+                </svg>
+                Kakao로 로그인
+            </a>
+        </div>
+
+        <div class="info-section">
+            <h3>💡 테스트 방법</h3>
+            <div class="info-item">위 버튼을 클릭하여 소셜 로그인 시작</div>
+            <div class="info-item">OAuth 인증 페이지에서 로그인</div>
+            <div class="info-item">전화번호 인증이 필요한 경우 진행</div>
+            <div class="info-item">콘솔(F12)에서 응답 데이터 확인</div>
+        </div>
+
+        <div class="endpoint">
+            <strong>API Base URL:</strong> http://localhost:3002
+        </div>
+
+        <div class="user-info" id="user-info">
+            <h3>✅ 로그인 성공!</h3>
+            <p><span class="label">User ID:</span> <span id="user-id"></span></p>
+            <p><span class="label">전화번호:</span> <span id="user-phone"></span></p>
+            <p><span class="label">이름:</span> <span id="user-name"></span></p>
+            <p><span class="label">이메일:</span> <span id="user-email"></span></p>
+            <p><span class="label">Access Token:</span> <span id="access-token"></span></p>
+            <button class="btn logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>로그인 처리 중...</p>
+        </div>
+
+        <div class="footer">
+            DBA Portal Auth Server Test Page
+        </div>
+    </div>
+
+    <script>
+        // 서버 상태 확인
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('http://localhost:3002/health');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('server-status').innerHTML =
+                        '✅ 서버 정상 동작 중 (http://localhost:3002)';
+                } else {
+                    throw new Error('Server not healthy');
+                }
+            } catch (error) {
+                document.getElementById('server-status').innerHTML =
+                    '❌ 서버 연결 실패 - 서버를 실행해주세요 (npm run dev)';
+                console.error('Server status check failed:', error);
+            }
+        }
+
+        // URL 파라미터에서 사용자 정보 확인
+        function checkAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userData = urlParams.get('user');
+
+            if (userData) {
+                try {
+                    const user = JSON.parse(decodeURIComponent(userData));
+                    displayUserInfo(user);
+                } catch (error) {
+                    console.error('Failed to parse user data:', error);
+                }
+            }
+
+            // 전화번호 인증 필요 여부 확인
+            const requirePhone = urlParams.get('requirePhoneVerification');
+            if (requirePhone === 'true') {
+                alert('전화번호 인증이 필요합니다. 별도의 인증 페이지로 이동해야 합니다.');
+                console.log('Social Profile:', urlParams.get('socialProfile'));
+            }
+        }
+
+        // 사용자 정보 표시
+        function displayUserInfo(user) {
+            document.getElementById('user-id').textContent = user.id || 'N/A';
+            document.getElementById('user-phone').textContent = user.phone || 'N/A';
+            document.getElementById('user-name').textContent = user.name || '미설정';
+            document.getElementById('user-email').textContent = user.email || '미설정';
+            document.getElementById('access-token').textContent =
+                (user.accessToken || 'N/A').substring(0, 50) + '...';
+
+            document.getElementById('user-info').classList.add('show');
+
+            // 로컬 스토리지에 토큰 저장
+            if (user.accessToken) {
+                localStorage.setItem('accessToken', user.accessToken);
+            }
+            if (user.refreshToken) {
+                localStorage.setItem('refreshToken', user.refreshToken);
+            }
+
+            console.log('User Info:', user);
+        }
+
+        // 로그아웃
+        async function logout() {
+            const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                alert('로그인 상태가 아닙니다.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3002/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('로그아웃되었습니다.');
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    document.getElementById('user-info').classList.remove('show');
+                    window.location.href = window.location.pathname;
+                } else {
+                    alert('로그아웃 실패: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+                alert('로그아웃 요청 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 내 정보 조회
+        async function getMyInfo() {
+            const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                console.log('No access token found');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3002/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayUserInfo(data.data);
+                } else {
+                    console.log('Failed to get user info:', data.message);
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                }
+            } catch (error) {
+                console.error('Get my info failed:', error);
+            }
+        }
+
+        // 페이지 로드 시 실행
+        window.onload = function() {
+            checkServerStatus();
+            checkAuthCallback();
+
+            // 저장된 토큰이 있으면 사용자 정보 조회
+            if (localStorage.getItem('accessToken')) {
+                getMyInfo();
+            }
+        };
+
+        // 콘솔에 도움말 출력
+        console.log('%c🔐 소셜 로그인 테스트 페이지', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log('%c💡 사용 가능한 함수:', 'font-size: 14px; font-weight: bold;');
+        console.log('  - checkServerStatus() : 서버 상태 확인');
+        console.log('  - getMyInfo() : 내 정보 조회');
+        console.log('  - logout() : 로그아웃');
+        console.log('%c📝 저장된 토큰:', 'font-size: 14px; font-weight: bold;');
+        console.log('  - accessToken:', localStorage.getItem('accessToken'));
+        console.log('  - refreshToken:', localStorage.getItem('refreshToken'));
+    </script>
+</body>
+</html>
