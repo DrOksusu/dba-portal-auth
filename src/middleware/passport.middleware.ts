@@ -8,7 +8,7 @@ import { GoogleProfile, KakaoProfile, SocialProfile } from '../types/auth.types'
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackURL: 'http://localhost:3002/auth/google/callback'
+  callbackURL: `http://localhost:${process.env.PORT || 3003}/auth/google/callback`
 }, async (accessToken, refreshToken, profile: GoogleProfile, done) => {
   try {
     const socialProfile: SocialProfile = {
@@ -40,7 +40,7 @@ passport.use(new GoogleStrategy({
 passport.use(new KakaoStrategy({
   clientID: process.env.KAKAO_CLIENT_ID!,
   clientSecret: process.env.KAKAO_CLIENT_SECRET!,
-  callbackURL: 'http://localhost:3002/auth/kakao/callback'
+  callbackURL: `http://localhost:${process.env.PORT || 3003}/auth/kakao/callback`
 }, async (accessToken: string, refreshToken: string, profile: KakaoProfile, done: any) => {
   try {
     const socialProfile: SocialProfile = {
